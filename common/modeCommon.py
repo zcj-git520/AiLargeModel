@@ -36,3 +36,13 @@ class Model:
 
     def qwen_llm_china(self, prompt: PromptTemplate):
         return self.llm_china(ModelType.QWEN, prompt)
+
+    # qwen流式输出
+    def qwen_llm_stream(self):
+        self.llm_qwen.streaming = True
+        return self.llm_qwen
+
+    # deepseek流式输出
+    def deepseek_qwen_china(self):
+        self.llm_deepSeek.streaming = True
+        return self.llm_deepSeek
