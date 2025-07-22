@@ -23,7 +23,7 @@ class Model:
             max_tokens=config.model_config(ModelType.QWEN).get("maxTokens"),
         )
 
-    def llm_china(self, mode_type: ModelType, prompt: PromptTemplate):
+    def llm_china(self, mode_type: ModelType, prompt):
         if mode_type == ModelType.DEEPSEEK:
             return LLMChain(llm=self.llm_deepSeek, prompt=prompt)
         if mode_type == ModelType.QWEN:
@@ -31,10 +31,10 @@ class Model:
         logging.info(f"modeType: {mode_type} 不存在")
         return None
 
-    def deepseek_llm_china(self, prompt: PromptTemplate):
+    def deepseek_llm_china(self, prompt):
         return self.llm_china(ModelType.DEEPSEEK, prompt)
 
-    def qwen_llm_china(self, prompt: PromptTemplate):
+    def qwen_llm_china(self, prompt):
         return self.llm_china(ModelType.QWEN, prompt)
 
     # qwen流式输出
