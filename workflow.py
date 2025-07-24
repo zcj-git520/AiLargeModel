@@ -8,7 +8,7 @@ from langchain_core.tools import tool
 
 from langchain.chains import SimpleSequentialChain
 
-import PromptStudy
+import Prompt
 from common.modeCommon import Model
 from config.config import Config
 
@@ -29,7 +29,7 @@ async def async_stream(model: Model, constr):
 
 
 # Chain
-async def llm_chain(model: Model, prompt: PromptStudy):
+async def llm_chain(model: Model, promp):
     # 创建一个工作链
     base_prompt = prompt.base_prompt()
     parser = StrOutputParser()
@@ -46,19 +46,19 @@ async def llm_chain(model: Model, prompt: PromptStudy):
     序列链的主要优点是可以将多个链组合在一起，形成一个完整的工作流。
     序列链的主要缺点是每个链都需要独立运行，因此可能会导致性能问题。
 """
-def one_chain(model: Model, prompt: PromptStudy):
+def one_chain(model: Model, prompt):
     base_prompt = prompt.base_prompt()
     parser = JsonOutputParser()
     stream_model = model.qwen_llm_stream()
     chain = base_prompt | stream_model | parser
     return chain
-def two_chain(model: Model, prompt: PromptStudy):
+def two_chain(model: Model, prompt):
     base_prompt = prompt.base_prompt()
     parser = StrOutputParser()
     stream_model = model.qwen_llm_stream()
     chain = base_prompt | stream_model | parser
     return chain
-def llm_chain_sequential(model: Model, prompt: PromptStudy):
+def llm_chain_sequential(model: Model, prompt):
     chain_one = one_chain(model, prompt)
     chain_two = two_chain(model, prompt)
     overall_chain = chain_one | chain_two
@@ -87,9 +87,12 @@ def transform_chain(model: Model):
     chain_one = model.qwen_llm_china(first_prompt)
     second_prompt = ChatPromptTemplate.from_template("为以下公司写一个20字的描述：{company_name}")
     chain_two = model.qwen_llm_china(second_prompt)
-    overall_simple_chain = SimpleSequentialChain(chains=[chain_one, chain_two], verbose=True)
+    # overall_simple_chain = SimpleSequentialChain(chains=[chain_one, chain_two], verbose=True)
+    # 直接使用 | 操作符构建序列链
+    overall_chain = chain_one | {"company_name": lambda x: x} | chain_two
     product = "外卖和电商"
-    chain_output = overall_simple_chain.invoke(product)
+    input_dict = {"产品": product}
+    chain_output = overall_chain.invoke(input_dict)
     print(chain_output)
 #条件链（Conditional Chains）： 允许你根据某些条件选择不同的链来执行
 #路由链（Router Chains）： 允许你根据某些条件选择不同的链来执行
@@ -104,7 +107,7 @@ if __name__ == '__main__':
     # 初始化模型
     model = Model(config)
     # 初始化模板
-    prompt = PromptStudy.Prompt()
+    prompt = Prompt.Prompt()
     # sync_stream(model, "贵州省的组成")
     # asyncio.run(async_stream(model, "上海怎么样"))
     # asyncio.run(llm_chain(model, prompt))

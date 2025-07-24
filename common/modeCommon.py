@@ -25,9 +25,9 @@ class Model:
 
     def llm_china(self, mode_type: ModelType, prompt):
         if mode_type == ModelType.DEEPSEEK:
-            return LLMChain(llm=self.llm_deepSeek, prompt=prompt)
+            return prompt | self.llm_deepSeek
         if mode_type == ModelType.QWEN:
-            return LLMChain(llm=self.llm_qwen, prompt=prompt)
+            return prompt | self.llm_qwen
         logging.info(f"modeType: {mode_type} 不存在")
         return None
 
