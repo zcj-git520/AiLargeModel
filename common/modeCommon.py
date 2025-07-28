@@ -1,8 +1,6 @@
 import logging
 
 from langchain_openai import ChatOpenAI
-from langchain.chains import LLMChain
-from langchain.prompts import PromptTemplate
 
 from config.config import Config
 from enums.model_enums import ModelType
@@ -46,3 +44,10 @@ class Model:
     def deepseek_qwen_china(self):
         self.llm_deepSeek.streaming = True
         return self.llm_deepSeek
+
+    def deepseek_llm(self):
+        return self.llm_deepSeek
+
+    def qwen_llm(self):
+        return self.llm_qwen
+
