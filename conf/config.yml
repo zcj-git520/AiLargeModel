@@ -1,11 +1,11 @@
 deepSeek:
   modelName: 'deepseek-chat'
-  apiKey: "sk-b6898949cf4043578ba6afea6df099bf"
+  apiKey: "sk-xxxxxxxxxxxxxxxxx"
   apiBase: "https://api.deepseek.com/v1"
   maxTokens: 1024
 
 qwen:
   modelName: 'qwen-plus'
-  apiKey: "sk-bd6c991f899f498e917e09aa83122223"
+  apiKey: "sk-xxxxxxxxxxxxxxxxx"
   apiBase: "https://dashscope.aliyuncs.com/compatible-mode/v1"
   maxTokens: 1024
