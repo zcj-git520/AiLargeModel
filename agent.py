@@ -18,6 +18,7 @@ def ip_weather_agent(model: Model, tools:list):
     agent_executor = create_react_agent(llm_model, tools, checkpointer=memory)
     return agent_executor
 
+
 if __name__ == '__main__':
     config = Config('conf/config.yml')
     # 初始化模型

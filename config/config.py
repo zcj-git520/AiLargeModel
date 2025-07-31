@@ -23,6 +23,10 @@ class Config:
             return self.config['qwen']
         return None
 
+    # 获取向量数据库配置信息
+    def chroma_config(self):
+        return self.config['chroma']
+
 
 if __name__ == '__main__':
     config = Config('../conf/config.yml')
