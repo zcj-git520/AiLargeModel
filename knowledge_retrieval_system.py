@@ -28,7 +28,7 @@ class KnowledgeBaseSystem:
 
     def initialize_session(self):
         """初始化会话状态"""
-        if "messages" not in st.session_state or st.sidebar.button("清空聊天记录"):
+        if "messages" not in st.session_state :
             st.session_state["messages"] = [
                 {
                     "role": "assistant",
