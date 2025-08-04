@@ -6,6 +6,7 @@ from typing import Optional, List
 
 from langchain_community.document_loaders import PyMuPDFLoader, TextLoader, Docx2txtLoader, UnstructuredExcelLoader, \
     UnstructuredPowerPointLoader, UnstructuredImageLoader, UnstructuredFileLoader
+from langchain_core.tools import create_retriever_tool
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 from DB.chroma import ChromaDB
@@ -103,17 +104,24 @@ class Knowledge:
 
 
 if __name__ == "__main__":
-    files = ["D:\work\安服工作\安服资料\第2篇：Linux入侵排查.pdf","D:\work\安服工作\安服资料\Web安全开发指南 电子版.pdf"]
-    document_processor = Knowledge()
-    documents = document_processor.load_files(files, "pdf")
-    print(documents)
-    #批量写入
+    # files = ["D:\work\安服工作\安服资料\第2篇：Linux入侵排查.pdf","D:\work\安服工作\安服资料\Web安全开发指南 电子版.pdf"]
+    # document_processor = Knowledge()
+    # documents = document_processor.load_files(files, "pdf")
+    # print(documents)
+    # #批量写入
     config = Config('conf/config.yml')
     chromadb = ChromaDB(config, ModelType.QWEN)
-    chromadb.add(documents)
-    # 向量数据库查询
-    query = "已监听端⼝ "
-    docs = chromadb.query(query)
-    for doc in docs:
-        print(doc)
+    # chromadb.add(documents)
+    # # 向量数据库查询
+    # query = "已监听端⼝ "
+    # docs = chromadb.query(query)
+    # for doc in docs:
+    #     print(doc)
+    retriever = chromadb.as_retriever(search_kwargs={"k": 3})
+    tool = create_retriever_tool(
+        retriever,
+        name="知识库检索",
+        description="从知识库中检索相关信息来回答问题"
+    )
+
 

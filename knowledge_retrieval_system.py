@@ -1,6 +1,5 @@
 import os
 import tempfile
-from typing import List, Dict, Any
 
 import streamlit as st
 from langchain.agents import AgentExecutor, create_react_agent
@@ -22,19 +21,6 @@ class KnowledgeBaseSystem:
         self.chromadb = chromadb
         self.model = model
         self.document_processor = document_processor
-        self.setup_page_config()
-        self.initialize_session()
-
-
-    def initialize_session(self):
-        """初始化会话状态"""
-        if "messages" not in st.session_state :
-            st.session_state["messages"] = [
-                {
-                    "role": "assistant",
-                    "content": "您好，我是您的知识检索助手，请问有什么可以帮助您的？"
-                }
-            ]
 
     def setup_page_config(self):
         """设置页面配置"""
@@ -45,8 +31,7 @@ class KnowledgeBaseSystem:
         )
         st.title("📚 智能知识检索系统")
         st.sidebar.header("文档上传")
-        # 单独处理清空聊天记录按钮
-        if st.sidebar.button("清空聊天记录"):
+        if "messages" not in st.session_state or st.sidebar.button("清空聊天记录"):
             st.session_state["messages"] = [
                 {
                     "role": "assistant",
@@ -60,21 +45,15 @@ class KnowledgeBaseSystem:
         # 显示聊天历史
         for msg in st.session_state.messages:
             st.chat_message(msg["role"]).write(msg["content"])
-        # for msg in st.session_state.messages:
-        #     st.chat_message(
-        #         msg["role"],
-        #     ).write(
-        #         msg["content"]
-        #     )
 
 
     def handle_file_upload(self):
         """处理文件上传"""
         files = st.sidebar.file_uploader(
-            label="上传文档（支持txt/pdf/docx/xlsx/pptx/image）",
-            type=["txt", "pdf", "docx", "xlsx", "pptx", "image"],
-            accept_multiple_files=True,
-            help="请上传需要检索的文档"
+            label="支持上传TXT、PDF、Word、Excel、PPT和图片文件，单个文件最大200MB",  # 主标签改为中文
+            type=["txt", "pdf", "docx", "xlsx", "pptx", "png", "jpg", "jpeg"],  # 支持的文件类型
+            accept_multiple_files=True,  # 允许上传多个文件
+            # help="支持上传TXT、PDF、Word、Excel、PPT和图片文件，单个文件最大200MB"  # 帮助文本改为中文
         )
 
         if not files:
@@ -103,7 +82,7 @@ class KnowledgeBaseSystem:
 
         tool = create_retriever_tool(
             retriever,
-            name="knowledge_retriever",
+            name="知识库检索",
             description="从知识库中检索相关信息来回答问题"
         )
 
@@ -115,37 +94,48 @@ class KnowledgeBaseSystem:
             output_key="output"
         )
 
-        prompt_template = """
-        您是一个专业的知识检索助手，您的任务是:
-        1. 理解用户的问题
-        2. 从知识库中检索相关信息
-        3. 提供准确、有帮助的回答
+        instructions = """
+           您是一个设计用于查询检索知识库并回答问题的代理;
+           您可以使用检索工具，并基于检索内容来回答问题;
+           您可以通过不查询文档就知道答案，但您仍然需要通过查询文档来获取答案;
+           如果您从文档中找不到任何信息用于回答问题，则只需返回“抱歉，这个问题我还不知道”作为答案。
+           """
+        # 基础提示模板
+        base_prompt_template = """
+           {instructions}
 
-        工具:
-        ------
-        您可以使用的工具:
-        {tools}
+           TOOLS:
+           ------
+           You have access to the following tools:
+           {tools}
 
-        使用工具时，请遵循以下格式:
-        Thought: 我需要使用工具吗? 是
-        Action: 要执行的操作，必须是 [{tool_names}] 中的一个
-        Action Input: {input}
-        Observations: 操作的结果
+           To use a tool,please use the following format:
 
-        当您有答案要告诉用户，或者不需要使用工具时，必须使用以下格式:
-        Thought: 我需要使用工具吗? 否
-        Final Answer: [您的回答]
+           Thought: Do I need to use a tool? Yes
+           Action: the action to take,should be one of [{tool_names}]
+           Action Input: {input}
+           Observations: the result of the action
 
-        开始!
+           When you have a response to say to the Human,or if you do not need to use a tool,you MUST use the format:
+           Thought: Do I need to use a tool: No
+           Final Answer:[your response here]
 
-        历史对话:
-        {chat_history}
+           Begin!
 
-        新输入: {input}
-        {agent_scratchpad}
-        """
+           Previous conversation history:
+           {chat_history}
 
-        prompt = PromptTemplate.from_template(prompt_template)
+           New input:{input}
+           {agent_scratchpad}
+           """
+        # 创建基础提示词模板
+        base_prompt = PromptTemplate.from_template(
+            template=base_prompt_template
+        )
+        # 创建部分填充的提示词模板
+        prompt = base_prompt.partial(
+            instructions=instructions
+        )
         agent = create_react_agent(
             self.model,
             [tool],
@@ -171,24 +161,6 @@ class KnowledgeBaseSystem:
         st.session_state.messages.append({"role": "user", "content": user_query})
         st.chat_message("user").write(user_query)
 
-        # with st.chat_message("assistant"):
-        #     st_cb = StreamlitCallbackHandler(st.container())
-        #     # print("st_cb: ", st_cb)
-        #     config = {
-        #         "callbacks": [st_cb]
-        #     }
-        #     response = agent_executor.invoke(
-        #         {
-        #             "input": user_query
-        #         }, config=config
-        #     )
-        #     st.session_state.messages.append(
-        #         {
-        #             "role": "assistant",
-        #             "content": response["output"]
-        #         }
-        #     )
-        #     st.write(response["output"])
 
         with st.chat_message("assistant"):
             st_cb = StreamlitCallbackHandler(st.container())
@@ -203,6 +175,7 @@ class KnowledgeBaseSystem:
 
     def run(self):
         """运行知识检索系统"""
+        self.setup_page_config()
         self.display_chat_history()
         self.handle_file_upload()
 
