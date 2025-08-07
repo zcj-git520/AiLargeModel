@@ -1,10 +1,7 @@
-import json
-
 from langchain_community.tools import WikipediaQueryRun
 from langchain_community.utilities import WikipediaAPIWrapper
-from langchain_core.messages import HumanMessage, ToolMessage
+from langchain_core.messages import HumanMessage
 from langgraph.checkpoint.memory import MemorySaver
-
 from langgraph.constants import START
 from langgraph.graph import StateGraph
 from langgraph.graph.message import add_messages
@@ -40,6 +37,11 @@ def buildGraph():
     graph_builder.add_edge(START, "chatbot")
 
     graph = graph_builder.compile(checkpointer=memory)
+    try:
+        # 增加重试次数和延迟时间
+        graph.get_graph().draw_mermaid_png(output_file_path="graph.png", max_retries=5, retry_delay=2.0)
+    except Exception as e:
+        print(f"渲染图表失败: {e}")
     return graph
 
 def tools():
