@@ -15,5 +15,5 @@ qwen:
 chroma:
   host: "192.168.50.109"
   port: 7000
-  collection_name: "doc_db"
+  collection_name: "doc_code_db"
 
